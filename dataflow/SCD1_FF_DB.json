@@ -26,7 +26,7 @@
 						"referenceName": "Ds_Az_ST2",
 						"type": "DatasetReference"
 					},
-					"name": "source1"
+					"name": "sqlEmphist"
 				}
 			],
 			"sinks": [
@@ -42,14 +42,14 @@
 						"referenceName": "Ds_Az_ST2",
 						"type": "DatasetReference"
 					},
-					"name": "sink1Insert"
+					"name": "TgtUpdate"
 				},
 				{
 					"dataset": {
 						"referenceName": "Ds_Az_ST2",
 						"type": "DatasetReference"
 					},
-					"name": "sink2Update"
+					"name": "sink1"
 				}
 			],
 			"transformations": [
@@ -91,7 +91,7 @@
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> Emp",
 				"source(output(",
-				"          Id as integer,",
+				"          Id as short,",
 				"          Name as string,",
 				"          Gender as string,",
 				"          Country as string,",
@@ -114,10 +114,10 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
-				"     format: 'table') ~> source1",
+				"     format: 'table') ~> sqlEmphist",
 				"Emp alterRow(upsertIf(1==1)) ~> Upsert",
 				"EmpHist derive(IsActive = 1) ~> AddIsActive",
-				"source1 select(mapColumn(",
+				"sqlEmphist select(mapColumn(",
 				"          Ssurr = surr,",
 				"          SId = Id,",
 				"          SName = Name,",
@@ -168,16 +168,48 @@
 				"          Department,",
 				"          Salary",
 				"     )) ~> TgtEmp",
-				"AddIsActive sink(allowSchemaDrift: true,",
+				"UpdateRule sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
+				"          surr as integer,",
 				"          Id as integer,",
 				"          Name as string,",
 				"          Gender as string,",
 				"          Country as string,",
 				"          Department as string,",
 				"          Salary as string,",
-				"          IsActive as string",
+				"          IsActive as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['surr'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          surr = Ssurr,",
+				"          Id = SId,",
+				"          Name = SName,",
+				"          Gender = SGender,",
+				"          Country = SCountry,",
+				"          Department = SDepartment,",
+				"          Salary = SSalary,",
+				"          IsActive = SIsActive",
+				"     )) ~> TgtUpdate",
+				"AddIsActive sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          surr as integer,",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as integer",
 				"     ),",
 				"     deletable:false,",
 				"     insertable:true,",
@@ -195,27 +227,7 @@
 				"          Department,",
 				"          Salary,",
 				"          IsActive",
-				"     )) ~> sink1Insert",
-				"UpdateRule sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     input(",
-				"          Id as integer,",
-				"          Name as string,",
-				"          Gender as string,",
-				"          Country as string,",
-				"          Department as string,",
-				"          Salary as string,",
-				"          IsActive as string",
-				"     ),",
-				"     deletable:false,",
-				"     insertable:false,",
-				"     updateable:false,",
-				"     upsertable:true,",
-				"     keys:['Ssurr'],",
-				"     format: 'table',",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> sink2Update"
+				"     )) ~> sink1"
 			]
 		}
 	}
