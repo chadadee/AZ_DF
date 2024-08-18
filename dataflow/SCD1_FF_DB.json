@@ -35,7 +35,7 @@
 						"referenceName": "Ds_Az_ST",
 						"type": "DatasetReference"
 					},
-					"name": "TgtEmp"
+					"name": "TgtUpsert"
 				},
 				{
 					"dataset": {
@@ -166,7 +166,7 @@
 				"          Country,",
 				"          Department,",
 				"          Salary",
-				"     )) ~> TgtEmp",
+				"     )) ~> TgtUpsert",
 				"UpdateRule sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
