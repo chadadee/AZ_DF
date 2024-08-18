@@ -13,7 +13,7 @@
 						"referenceName": "Op_DB_ST",
 						"type": "DatasetReference"
 					},
-					"name": "Cust"
+					"name": "Emp"
 				}
 			],
 			"sinks": [],
@@ -23,7 +23,7 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     query: 'SELECT * FROM job_employees',",
-				"     format: 'query') ~> Cust"
+				"     format: 'query') ~> Emp"
 			]
 		}
 	}
