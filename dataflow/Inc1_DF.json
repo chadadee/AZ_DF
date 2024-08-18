@@ -9,14 +9,21 @@
 		"typeProperties": {
 			"sources": [
 				{
-					"name": "source1"
+					"dataset": {
+						"referenceName": "Op_DB_ST",
+						"type": "DatasetReference"
+					},
+					"name": "Cust"
 				}
 			],
 			"sinks": [],
 			"transformations": [],
 			"scriptLines": [
 				"source(allowSchemaDrift: true,",
-				"     validateSchema: false) ~> source1"
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT * FROM job_employees',",
+				"     format: 'query') ~> Cust"
 			]
 		}
 	}
