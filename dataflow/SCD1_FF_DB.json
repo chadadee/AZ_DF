@@ -49,7 +49,7 @@
 						"referenceName": "Ds_Az_ST2",
 						"type": "DatasetReference"
 					},
-					"name": "Insert"
+					"name": "TgtInsert"
 				}
 			],
 			"transformations": [
@@ -151,9 +151,9 @@
 				"Upsert sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
-				"     insertable:true,",
+				"     insertable:false,",
 				"     updateable:false,",
-				"     upsertable:false,",
+				"     upsertable:true,",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
@@ -228,7 +228,7 @@
 				"          Department,",
 				"          Salary,",
 				"          IsActive",
-				"     )) ~> Insert"
+				"     )) ~> TgtInsert"
 			]
 		}
 	}
