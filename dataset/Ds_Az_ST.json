@@ -1,0 +1,15 @@
+{
+	"name": "Ds_Az_ST",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_Azure_Sql_DB",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Incremental_DL_Ds"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	}
+}
