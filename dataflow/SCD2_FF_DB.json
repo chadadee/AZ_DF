@@ -35,7 +35,7 @@
 						"referenceName": "Ds_Az_ST2",
 						"type": "DatasetReference"
 					},
-					"name": "sink1"
+					"name": "TgtUpdate"
 				}
 			],
 			"transformations": [
@@ -179,7 +179,7 @@
 				"          Department = SDepartment,",
 				"          Salary = SSalary,",
 				"          IsActive = SIsActive",
-				"     )) ~> sink1"
+				"     )) ~> TgtUpdate"
 			]
 		}
 	}
