@@ -1,0 +1,78 @@
+{
+	"name": "Join_DF",
+	"properties": {
+		"folder": {
+			"name": "Data_Flow_Trans"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "EmpCsv"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Dept_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "DeptCsv"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_All_CSV_data_out",
+						"type": "DatasetReference"
+					},
+					"name": "JoinAggTF"
+				}
+			],
+			"transformations": [
+				{
+					"name": "JoinTF"
+				},
+				{
+					"name": "Agg"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> EmpCsv",
+				"source(output(",
+				"          Departid as integer,",
+				"          DeptName as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     limit: 100,",
+				"     ignoreNoFilesFound: false,",
+				"     partitionBy('hash', 1)) ~> DeptCsv",
+				"EmpCsv, DeptCsv join(Department == Departid,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> JoinTF",
+				"JoinTF aggregate(groupBy(Department,",
+				"          DeptName),",
+				"     TotalEmp = count(Name)) ~> Agg",
+				"Agg sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Join_Agg.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> JoinAggTF"
+			]
+		}
+	}
+}

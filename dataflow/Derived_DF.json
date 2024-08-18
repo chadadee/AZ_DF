@@ -1,0 +1,60 @@
+{
+	"name": "Derived_DF",
+	"properties": {
+		"folder": {
+			"name": "Data_Flow_Trans"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "EmpCsv"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_All_CSV_data_out",
+						"type": "DatasetReference"
+					},
+					"name": "DCOut"
+				}
+			],
+			"transformations": [
+				{
+					"name": "DC1"
+				},
+				{
+					"name": "PVT"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> EmpCsv",
+				"EmpCsv derive(Country = iif(isNull(Country),'Unknown',upper(Country))) ~> DC1",
+				"DC1 pivot(groupBy(Country),",
+				"     pivotBy(Gender),",
+				"     {} = count(Name),",
+				"     columnNaming: 'Total_$N$V_Emps',",
+				"     lateral: true) ~> PVT",
+				"PVT sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Derived_out.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> DCOut"
+			]
+		}
+	}
+}

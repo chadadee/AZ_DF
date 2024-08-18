@@ -1,0 +1,62 @@
+{
+	"name": "Agg_DF",
+	"properties": {
+		"folder": {
+			"name": "Data_Flow_Trans"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "EmpCSV"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_All_CSV_data_out",
+						"type": "DatasetReference"
+					},
+					"name": "Aggout"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AggDept"
+				},
+				{
+					"name": "SortDept"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> EmpCSV",
+				"EmpCSV aggregate(groupBy(Department),",
+				"     TotalEmp = count(Name)) ~> AggDept",
+				"AggDept sort(asc(Department, true),",
+				"     partitionBy('hash', 1)) ~> SortDept",
+				"SortDept sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['Agg.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          Department_Id = Department,",
+				"          TotalEmp_Cnt = TotalEmp",
+				"     ),",
+				"     partitionBy('hash', 1)) ~> Aggout"
+			]
+		}
+	}
+}

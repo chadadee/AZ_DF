@@ -1,0 +1,9 @@
+{
+	"name": "ChadaADF",
+	"location": "eastus",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "627dabbe-b0b0-449a-9334-e30cc37d8e59",
+		"tenantId": "330731f3-e27e-4d48-9a62-254c273127e0"
+	}
+}

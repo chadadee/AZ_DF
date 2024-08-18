@@ -1,0 +1,108 @@
+{
+	"name": "Conditional_Split_DF",
+	"properties": {
+		"folder": {
+			"name": "Data_Flow_Trans"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "EmpCSV"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_All_CSV_data_out",
+						"type": "DatasetReference"
+					},
+					"name": "HrEmpCsv"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_All_CSV_data_out",
+						"type": "DatasetReference"
+					},
+					"name": "ITEmp"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_All_CSV_data_out",
+						"type": "DatasetReference"
+					},
+					"name": "FinEmp"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_All_CSV_data_out",
+						"type": "DatasetReference"
+					},
+					"name": "OpsEmp"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_All_CSV_data_out",
+						"type": "DatasetReference"
+					},
+					"name": "SalesEmp"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SplitBasedonDeptNames"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> EmpCSV",
+				"EmpCSV split(equals(Department,'1'),",
+				"     equals(Department, '2'),",
+				"     equals(Department, '3'),",
+				"     equals(Department, '4'),",
+				"     disjoint: false) ~> SplitBasedonDeptNames@(HREmp, ITEmp, FinEmp, OpsEmp, Sales)",
+				"SplitBasedonDeptNames@HREmp sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['HrEmp.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> HrEmpCsv",
+				"SplitBasedonDeptNames@ITEmp sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['ITemp.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> ITEmp",
+				"SplitBasedonDeptNames@FinEmp sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['FinEmp.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> FinEmp",
+				"SplitBasedonDeptNames@OpsEmp sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['opsemp.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> OpsEmp",
+				"SplitBasedonDeptNames@Sales sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['SalesEmp'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> SalesEmp"
+			]
+		}
+	}
+}

@@ -1,0 +1,89 @@
+{
+	"name": "DF_Usecase1",
+	"properties": {
+		"folder": {
+			"name": "Use_Case_DF"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Custorder_Op_AZ",
+						"type": "DatasetReference"
+					},
+					"name": "FirstMinDate"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Custorder_Op_AZ",
+						"type": "DatasetReference"
+					},
+					"name": "CustTable"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_All_CSV_data_out",
+						"type": "DatasetReference"
+					},
+					"name": "FinalOp"
+				}
+			],
+			"transformations": [
+				{
+					"name": "MinDate"
+				},
+				{
+					"name": "Join2tables"
+				},
+				{
+					"name": "Comparedates"
+				},
+				{
+					"name": "FinalSummary"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          order_id as short,",
+				"          customer_id as short,",
+				"          order_date as date,",
+				"          order_amount as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     partitionBy('hash', 1)) ~> FirstMinDate",
+				"source(output(",
+				"          order_id as short,",
+				"          customer_id as short,",
+				"          order_date as date,",
+				"          order_amount as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> CustTable",
+				"FirstMinDate aggregate(groupBy(customer_id),",
+				"     First_Renewal_Date = min(order_date)) ~> MinDate",
+				"CustTable, MinDate join(CustTable@customer_id == MinDate@customer_id,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> Join2tables",
+				"Join2tables derive(New_Customer_Flag = case(order_date==First_Renewal_Date,1,0),",
+				"          Renewal_Customer_Flag = case(order_date!=First_Renewal_Date,1,0)) ~> Comparedates",
+				"Comparedates aggregate(groupBy(order_date),",
+				"     New_Customer_Registrns = sum(New_Customer_Flag),",
+				"          Renewal_Customer_Registrn = sum(Renewal_Customer_Flag)) ~> FinalSummary",
+				"FinalSummary sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     partitionFileNames:['New_Cust_Ren_Cust_Summary.csv'],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('hash', 1)) ~> FinalOp"
+			]
+		}
+	}
+}

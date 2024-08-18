@@ -1,0 +1,17 @@
+{
+	"name": "ls_sql_Server",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "SqlServer",
+		"typeProperties": {
+			"connectionString": "integrated security=True;data source=DEEPAK\\SQLEXPRESS;initial catalog=AdventureWorksLT2022",
+			"userName": "deepa",
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI4ZjdiN2FkYi1mMzk1LTQ4YTUtYjFkNC03MmM0MWY0ZGFkZDAiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+		},
+		"connectVia": {
+			"referenceName": "SHIR",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}
