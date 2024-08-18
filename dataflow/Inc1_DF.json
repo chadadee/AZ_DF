@@ -1,0 +1,23 @@
+{
+	"name": "Inc1_DF",
+	"properties": {
+		"description": "SCD-1 :Update Any Changes in the ODS Src like update or delete or insert in the Azure DB Tbales",
+		"folder": {
+			"name": "Incremental_DF"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"name": "source1"
+				}
+			],
+			"sinks": [],
+			"transformations": [],
+			"scriptLines": [
+				"source(allowSchemaDrift: true,",
+				"     validateSchema: false) ~> source1"
+			]
+		}
+	}
+}
