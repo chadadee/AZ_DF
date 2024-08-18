@@ -42,14 +42,7 @@
 						"referenceName": "Ds_Az_ST2",
 						"type": "DatasetReference"
 					},
-					"name": "sink1"
-				},
-				{
-					"dataset": {
-						"referenceName": "Ds_Az_ST2",
-						"type": "DatasetReference"
-					},
-					"name": "sink2"
+					"name": "sink1Insert"
 				}
 			],
 			"transformations": [
@@ -63,19 +56,19 @@
 					"name": "select1"
 				},
 				{
-					"name": "lookup1"
+					"name": "lookupSrcTgt"
 				},
 				{
 					"name": "ExisitngRows"
 				},
 				{
-					"name": "UpdateIsActive"
+					"name": "UpdateRule"
 				},
 				{
-					"name": "select2"
+					"name": "RenameTgtColumns"
 				},
 				{
-					"name": "derivedColumn1"
+					"name": "UpdateIsActiveFalse"
 				}
 			],
 			"scriptLines": [
@@ -132,9 +125,9 @@
 				"EmpHist, select1 lookup(Id == SId,",
 				"     multiple: false,",
 				"     pickup: 'any',",
-				"     broadcast: 'auto')~> lookup1",
-				"lookup1 filter(isNull(SId)) ~> ExisitngRows",
-				"derivedColumn1 alterRow(updateIf(1==1)) ~> UpdateIsActive",
+				"     broadcast: 'auto')~> lookupSrcTgt",
+				"lookupSrcTgt filter(!isNull(SId)) ~> ExisitngRows",
+				"UpdateIsActiveFalse alterRow(updateIf(1==1)) ~> UpdateRule",
 				"ExisitngRows select(mapColumn(",
 				"          Ssurr,",
 				"          SId,",
@@ -146,8 +139,8 @@
 				"          SIsActive",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select2",
-				"select2 derive(SIsActive = 0) ~> derivedColumn1",
+				"     skipDuplicateMapOutputs: true) ~> RenameTgtColumns",
+				"RenameTgtColumns derive(SIsActive = 0) ~> UpdateIsActiveFalse",
 				"Upsert sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
@@ -158,7 +151,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1,",
+				"     saveOrder: 0,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          Id,",
@@ -186,7 +179,6 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 3,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          Id,",
@@ -196,28 +188,7 @@
 				"          Department,",
 				"          Salary,",
 				"          IsActive",
-				"     )) ~> sink1",
-				"UpdateIsActive sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     input(",
-				"          Id as integer,",
-				"          Name as string,",
-				"          Gender as string,",
-				"          Country as string,",
-				"          Department as string,",
-				"          Salary as string,",
-				"          IsActive as string",
-				"     ),",
-				"     deletable:false,",
-				"     insertable:false,",
-				"     updateable:true,",
-				"     upsertable:false,",
-				"     keys:['Ssurr'],",
-				"     format: 'table',",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 2,",
-				"     errorHandlingOption: 'stopOnFirstError') ~> sink2"
+				"     )) ~> sink1Insert"
 			]
 		}
 	}
