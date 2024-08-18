@@ -1,0 +1,67 @@
+{
+	"name": "SCD1",
+	"properties": {
+		"folder": {
+			"name": "Incremental_DF"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "Emp"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST",
+						"type": "DatasetReference"
+					},
+					"name": "TgtEmp"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Upsert"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as short,",
+				"          Salary as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Emp",
+				"Emp alterRow(upsertIf(1==1)) ~> Upsert",
+				"Upsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['Id'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Id,",
+				"          Name,",
+				"          Gender,",
+				"          Country,",
+				"          Department,",
+				"          Salary",
+				"     )) ~> TgtEmp"
+			]
+		}
+	}
+}
