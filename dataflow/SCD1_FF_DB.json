@@ -12,13 +12,6 @@
 						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
 						"type": "DatasetReference"
 					},
-					"name": "Emp"
-				},
-				{
-					"dataset": {
-						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
-						"type": "DatasetReference"
-					},
 					"name": "EmpHist"
 				},
 				{
@@ -30,13 +23,6 @@
 				}
 			],
 			"sinks": [
-				{
-					"dataset": {
-						"referenceName": "Ds_Az_ST",
-						"type": "DatasetReference"
-					},
-					"name": "TgtUpsert"
-				},
 				{
 					"dataset": {
 						"referenceName": "Ds_Az_ST2",
@@ -53,9 +39,6 @@
 				}
 			],
 			"transformations": [
-				{
-					"name": "Upsert"
-				},
 				{
 					"name": "AddIsActive"
 				},
@@ -79,17 +62,6 @@
 				}
 			],
 			"scriptLines": [
-				"source(output(",
-				"          Id as integer,",
-				"          Name as string,",
-				"          Gender as string,",
-				"          Country as string,",
-				"          Department as short,",
-				"          Salary as short",
-				"     ),",
-				"     allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     ignoreNoFilesFound: false) ~> Emp",
 				"source(output(",
 				"          Id as short,",
 				"          Name as string,",
@@ -115,7 +87,6 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> sqlEmphist",
-				"Emp alterRow(upsertIf(1==1)) ~> Upsert",
 				"EmpHist derive(IsActive = 1) ~> AddIsActive",
 				"sqlEmphist select(mapColumn(",
 				"          Ssurr = surr,",
@@ -148,26 +119,6 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> RenameTgtColumns",
 				"RenameTgtColumns derive(SIsActive = 0) ~> UpdateIsActiveFalse",
-				"Upsert sink(allowSchemaDrift: true,",
-				"     validateSchema: false,",
-				"     deletable:false,",
-				"     insertable:false,",
-				"     updateable:false,",
-				"     upsertable:true,",
-				"     keys:['Id'],",
-				"     format: 'table',",
-				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 1,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     mapColumn(",
-				"          Id,",
-				"          Name,",
-				"          Gender,",
-				"          Country,",
-				"          Department,",
-				"          Salary",
-				"     )) ~> TgtUpsert",
 				"UpdateRule sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
@@ -219,7 +170,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
-				"     saveOrder: 2,",
+				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          Id,",
