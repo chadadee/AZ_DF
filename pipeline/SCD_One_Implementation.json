@@ -3,7 +3,7 @@
 	"properties": {
 		"activities": [
 			{
-				"name": "DF_SCD1",
+				"name": "DF_SCD_FF_DB",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "SCD1",
+						"referenceName": "SCD1_FF_DB",
 						"type": "DataFlowReference"
 					},
 					"compute": {
