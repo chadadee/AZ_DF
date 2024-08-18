@@ -1,0 +1,154 @@
+{
+	"name": "SCD2",
+	"properties": {
+		"folder": {
+			"name": "Data_Flow_Trans"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "Emp"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "EmpHistDb"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "TgtInsert"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "TgtUpdate"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SrcHash"
+				},
+				{
+					"name": "TgtHash"
+				},
+				{
+					"name": "DoesNotexists"
+				},
+				{
+					"name": "SetIsActTrue"
+				},
+				{
+					"name": "exists1"
+				},
+				{
+					"name": "SetIsActiveFalse"
+				},
+				{
+					"name": "UpdatePolicyRule"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as short,",
+				"          Salary as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Emp",
+				"source(output(",
+				"          surr as integer,",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> EmpHistDb",
+				"Emp derive(SrcHash = md5(Id,Name,Gender,Country,Department,Salary)) ~> SrcHash",
+				"EmpHistDb derive(TgtHash = md5(Id,Name,Gender,Country,Department,Salary)) ~> TgtHash",
+				"SrcHash, TgtHash exists(SrcHash == TgtHash,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> DoesNotexists",
+				"DoesNotexists derive(IsActive = 1) ~> SetIsActTrue",
+				"TgtHash, SrcHash exists(EmpHistDb@Id == Emp@Id,",
+				"     negate:false,",
+				"     broadcast: 'auto')~> exists1",
+				"exists1 derive(IsActive = 0) ~> SetIsActiveFalse",
+				"SetIsActiveFalse alterRow(updateIf(1==1)) ~> UpdatePolicyRule",
+				"SetIsActTrue sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          surr as integer,",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Id,",
+				"          Name,",
+				"          Gender,",
+				"          Country,",
+				"          Department,",
+				"          Salary,",
+				"          IsActive",
+				"     )) ~> TgtInsert",
+				"UpdatePolicyRule sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          surr as integer,",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['surr','Id'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> TgtUpdate"
+			]
+		}
+	}
+}
