@@ -1,5 +1,5 @@
 {
-	"name": "SCD1",
+	"name": "SCD1_FF_DB",
 	"properties": {
 		"folder": {
 			"name": "Incremental_DF"
@@ -13,6 +13,20 @@
 						"type": "DatasetReference"
 					},
 					"name": "Emp"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "EmpHist"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
 				}
 			],
 			"sinks": [
@@ -22,11 +36,46 @@
 						"type": "DatasetReference"
 					},
 					"name": "TgtEmp"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "sink2"
 				}
 			],
 			"transformations": [
 				{
 					"name": "Upsert"
+				},
+				{
+					"name": "AddIsActive"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "ExisitngRows"
+				},
+				{
+					"name": "UpdateIsActive"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "derivedColumn1"
 				}
 			],
 			"scriptLines": [
@@ -41,7 +90,64 @@
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     ignoreNoFilesFound: false) ~> Emp",
+				"source(output(",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as short,",
+				"          Salary as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> EmpHist",
+				"source(output(",
+				"          surr as integer,",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> source1",
 				"Emp alterRow(upsertIf(1==1)) ~> Upsert",
+				"EmpHist derive(IsActive = 1) ~> AddIsActive",
+				"source1 select(mapColumn(",
+				"          Ssurr = surr,",
+				"          SId = Id,",
+				"          SName = Name,",
+				"          SGender = Gender,",
+				"          SCountry = Country,",
+				"          SDepartment = Department,",
+				"          SSalary = Salary,",
+				"          SIsActive = IsActive",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"EmpHist, select1 lookup(Id == SId,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"lookup1 filter(isNull(SId)) ~> ExisitngRows",
+				"derivedColumn1 alterRow(updateIf(1==1)) ~> UpdateIsActive",
+				"ExisitngRows select(mapColumn(",
+				"          Ssurr,",
+				"          SId,",
+				"          SName,",
+				"          SGender,",
+				"          SCountry,",
+				"          SDepartment,",
+				"          SSalary,",
+				"          SIsActive",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select2 derive(SIsActive = 0) ~> derivedColumn1",
 				"Upsert sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     deletable:false,",
@@ -52,6 +158,7 @@
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
 				"          Id,",
@@ -60,7 +167,57 @@
 				"          Country,",
 				"          Department,",
 				"          Salary",
-				"     )) ~> TgtEmp"
+				"     )) ~> TgtEmp",
+				"AddIsActive sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 3,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Id,",
+				"          Name,",
+				"          Gender,",
+				"          Country,",
+				"          Department,",
+				"          Salary,",
+				"          IsActive",
+				"     )) ~> sink1",
+				"UpdateIsActive sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['Ssurr'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink2"
 			]
 		}
 	}
