@@ -1,9 +1,9 @@
 {
-	"name": "PL_Agg_Sort_Pipeline_Execution",
+	"name": "SCD_One_Implementation",
 	"properties": {
 		"activities": [
 			{
-				"name": "Agg_Sort_DF",
+				"name": "DF_SCD_FF_DB",
 				"type": "ExecuteDataFlow",
 				"dependsOn": [],
 				"policy": {
@@ -16,7 +16,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "Agg_DF",
+						"referenceName": "SCD1_FF_DB",
 						"type": "DataFlowReference"
 					},
 					"compute": {
@@ -28,10 +28,8 @@
 			}
 		],
 		"folder": {
-			"name": "Data_Flow_Executions"
+			"name": "Incremental_Execution"
 		},
-		"annotations": [],
-		"lastPublishTime": "2024-08-09T04:16:29Z"
-	},
-	"type": "Microsoft.DataFactory/factories/pipelines"
+		"annotations": []
+	}
 }

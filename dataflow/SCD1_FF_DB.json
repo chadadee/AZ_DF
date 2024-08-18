@@ -1,0 +1,236 @@
+{
+	"name": "SCD1_FF_DB",
+	"properties": {
+		"folder": {
+			"name": "Incremental_DF"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "Emp"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Azure_Blob_Emp_Csv_Data",
+						"type": "DatasetReference"
+					},
+					"name": "EmpHist"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "sqlEmphist"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST",
+						"type": "DatasetReference"
+					},
+					"name": "TgtEmp"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "TgtUpdate"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "Insert"
+				}
+			],
+			"transformations": [
+				{
+					"name": "Upsert"
+				},
+				{
+					"name": "AddIsActive"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "lookupSrcTgt"
+				},
+				{
+					"name": "ExisitngRows"
+				},
+				{
+					"name": "UpdateRule"
+				},
+				{
+					"name": "RenameTgtColumns"
+				},
+				{
+					"name": "UpdateIsActiveFalse"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as short,",
+				"          Salary as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> Emp",
+				"source(output(",
+				"          Id as short,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as short,",
+				"          Salary as short",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false) ~> EmpHist",
+				"source(output(",
+				"          surr as integer,",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> sqlEmphist",
+				"Emp alterRow(upsertIf(1==1)) ~> Upsert",
+				"EmpHist derive(IsActive = 1) ~> AddIsActive",
+				"sqlEmphist select(mapColumn(",
+				"          Ssurr = surr,",
+				"          SId = Id,",
+				"          SName = Name,",
+				"          SGender = Gender,",
+				"          SCountry = Country,",
+				"          SDepartment = Department,",
+				"          SSalary = Salary,",
+				"          SIsActive = IsActive",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"EmpHist, select1 lookup(Id == SId,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookupSrcTgt",
+				"lookupSrcTgt filter(!isNull(SId)) ~> ExisitngRows",
+				"UpdateIsActiveFalse alterRow(updateIf(1==1)) ~> UpdateRule",
+				"ExisitngRows select(mapColumn(",
+				"          Ssurr,",
+				"          SId,",
+				"          SName,",
+				"          SGender,",
+				"          SCountry,",
+				"          SDepartment,",
+				"          SSalary,",
+				"          SIsActive",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> RenameTgtColumns",
+				"RenameTgtColumns derive(SIsActive = 0) ~> UpdateIsActiveFalse",
+				"Upsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['Id'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Id,",
+				"          Name,",
+				"          Gender,",
+				"          Country,",
+				"          Department,",
+				"          Salary",
+				"     )) ~> TgtEmp",
+				"UpdateRule sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          surr as integer,",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['surr'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 1,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          surr = Ssurr,",
+				"          Id = SId,",
+				"          Name = SName,",
+				"          Gender = SGender,",
+				"          Country = SCountry,",
+				"          Department = SDepartment,",
+				"          Salary = SSalary,",
+				"          IsActive = SIsActive",
+				"     )) ~> TgtUpdate",
+				"AddIsActive sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          surr as integer,",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as integer",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     saveOrder: 2,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          Id,",
+				"          Name,",
+				"          Gender,",
+				"          Country,",
+				"          Department,",
+				"          Salary,",
+				"          IsActive",
+				"     )) ~> Insert"
+			]
+		}
+	}
+}

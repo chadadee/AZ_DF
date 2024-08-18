@@ -1,0 +1,55 @@
+{
+	"name": "Ds_Az_ST2",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_Azure_Sql_DB",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Incremental_DL_Ds"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "surr",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Id",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Name",
+				"type": "varchar"
+			},
+			{
+				"name": "Gender",
+				"type": "varchar"
+			},
+			{
+				"name": "Country",
+				"type": "varchar"
+			},
+			{
+				"name": "Department",
+				"type": "varchar"
+			},
+			{
+				"name": "Salary",
+				"type": "varchar"
+			},
+			{
+				"name": "IsActive",
+				"type": "int",
+				"precision": 10
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "employees_snow_hist"
+		}
+	}
+}

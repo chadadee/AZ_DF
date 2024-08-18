@@ -1,0 +1,19 @@
+{
+	"name": "Op_DB_ST",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_Server",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "Incremental_DL_Ds"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "job_employees"
+		}
+	}
+}
