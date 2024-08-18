@@ -5,14 +5,9 @@
 			{
 				"name": "DF_SCD_FF_DB",
 				"type": "ExecuteDataFlow",
-				"dependsOn": [
-					{
-						"activity": "DF_SCD1_FF_DB_",
-						"dependencyConditions": [
-							"Succeeded"
-						]
-					}
-				],
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
 				"policy": {
 					"timeout": "0.12:00:00",
 					"retry": 0,
@@ -47,7 +42,7 @@
 				"userProperties": [],
 				"typeProperties": {
 					"dataflow": {
-						"referenceName": "SCD1_FF_DB",
+						"referenceName": "SCD2",
 						"type": "DataFlowReference"
 					},
 					"compute": {
