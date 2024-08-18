@@ -49,7 +49,7 @@
 						"referenceName": "Ds_Az_ST2",
 						"type": "DatasetReference"
 					},
-					"name": "sink1"
+					"name": "Insert"
 				}
 			],
 			"transformations": [
@@ -229,7 +229,7 @@
 				"          Department,",
 				"          Salary,",
 				"          IsActive",
-				"     )) ~> sink1"
+				"     )) ~> Insert"
 			]
 		}
 	}
