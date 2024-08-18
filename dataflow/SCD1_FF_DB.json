@@ -43,6 +43,13 @@
 						"type": "DatasetReference"
 					},
 					"name": "sink1Insert"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "sink2Update"
 				}
 			],
 			"transformations": [
@@ -188,7 +195,27 @@
 				"          Department,",
 				"          Salary,",
 				"          IsActive",
-				"     )) ~> sink1Insert"
+				"     )) ~> sink1Insert",
+				"UpdateRule sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          Id as integer,",
+				"          Name as string,",
+				"          Gender as string,",
+				"          Country as string,",
+				"          Department as string,",
+				"          Salary as string,",
+				"          IsActive as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     keys:['Ssurr'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> sink2Update"
 			]
 		}
 	}
