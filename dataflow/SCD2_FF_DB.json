@@ -28,7 +28,7 @@
 						"referenceName": "Ds_Az_ST2",
 						"type": "DatasetReference"
 					},
-					"name": "TgtInsert"
+					"name": "Tgtinsert"
 				},
 				{
 					"dataset": {
@@ -40,35 +40,44 @@
 			],
 			"transformations": [
 				{
-					"name": "AddIsActive"
+					"name": "SrcHash"
 				},
 				{
-					"name": "select1"
+					"name": "TgtHash"
 				},
 				{
-					"name": "lookup1"
+					"name": "exists1"
 				},
 				{
-					"name": "filter1"
+					"name": "UpdateIsActiveTrue"
 				},
 				{
-					"name": "select2"
+					"name": "ColumnReducer1"
 				},
 				{
-					"name": "derivedColumn1"
+					"name": "exists2"
 				},
 				{
-					"name": "alterRow1"
+					"name": "exists3"
+				},
+				{
+					"name": "UpdateIsActive"
+				},
+				{
+					"name": "UpdatePolicy"
+				},
+				{
+					"name": "ColumnReducer2"
 				}
 			],
 			"scriptLines": [
 				"source(output(",
-				"          Id as short,",
+				"          Id as integer,",
 				"          Name as string,",
 				"          Gender as string,",
 				"          Country as string,",
-				"          Department as short,",
-				"          Salary as short",
+				"          Department as string,",
+				"          Salary as string",
 				"     ),",
 				"     allowSchemaDrift: true,",
 				"     validateSchema: false,",
@@ -87,39 +96,45 @@
 				"     validateSchema: false,",
 				"     isolationLevel: 'READ_UNCOMMITTED',",
 				"     format: 'table') ~> sqlEmphist",
-				"EmpHist derive(IsActive = 1) ~> AddIsActive",
-				"sqlEmphist select(mapColumn(",
-				"          Ssurr = surr,",
-				"          SId = Id,",
-				"          SName = Name,",
-				"          SGender = Gender,",
-				"          SCountry = Country,",
-				"          SDepartment = Department,",
-				"          SSalary = Salary,",
-				"          SIsActive = IsActive",
+				"EmpHist derive(SrcHash = md5(Id,{Name},Gender,{Country},Department,{Salary})) ~> SrcHash",
+				"sqlEmphist derive(TgtHash = md5(Id,{Name},Gender,{Country},Department,{Salary})) ~> TgtHash",
+				"SrcHash, TgtHash exists(SrcHash == TgtHash,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> exists1",
+				"exists1 derive(IsActive = 1) ~> UpdateIsActiveTrue",
+				"UpdateIsActiveTrue select(mapColumn(",
+				"          Id,",
+				"          Name,",
+				"          Gender,",
+				"          Country,",
+				"          Department,",
+				"          Salary,",
+				"          IsActive",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select1",
-				"select1, EmpHist lookup(SId == Id,",
-				"     multiple: false,",
-				"     pickup: 'any',",
-				"     broadcast: 'auto')~> lookup1",
-				"lookup1 filter(!isNull(Id)) ~> filter1",
-				"filter1 select(mapColumn(",
-				"          Ssurr,",
-				"          SId,",
-				"          SName,",
-				"          SGender,",
-				"          SCountry,",
-				"          SDepartment,",
-				"          SSalary,",
-				"          SIsActive",
+				"     skipDuplicateMapOutputs: true) ~> ColumnReducer1",
+				"TgtHash, SrcHash exists(sqlEmphist@Id == EmpHist@Id,",
+				"     negate:false,",
+				"     partitionBy('hash', 1),",
+				"     broadcast: 'auto')~> exists2",
+				"exists2, SrcHash exists(TgtHash == SrcHash,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> exists3",
+				"exists3 derive(IsActive = 0) ~> UpdateIsActive",
+				"UpdateIsActive alterRow(updateIf(true())) ~> UpdatePolicy",
+				"UpdatePolicy select(mapColumn(",
+				"          surr,",
+				"          Id,",
+				"          Name,",
+				"          Gender,",
+				"          Country,",
+				"          Department,",
+				"          Salary,",
+				"          IsActive",
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
-				"     skipDuplicateMapOutputs: true) ~> select2",
-				"select2 derive(SIsActive = 0) ~> derivedColumn1",
-				"derivedColumn1 alterRow(updateIf(1==1)) ~> alterRow1",
-				"AddIsActive sink(allowSchemaDrift: true,",
+				"     skipDuplicateMapOutputs: true) ~> ColumnReducer2",
+				"ColumnReducer1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          surr as integer,",
@@ -139,17 +154,8 @@
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 2,",
-				"     errorHandlingOption: 'stopOnFirstError',",
-				"     mapColumn(",
-				"          Id,",
-				"          Name,",
-				"          Gender,",
-				"          Country,",
-				"          Department,",
-				"          Salary,",
-				"          IsActive",
-				"     )) ~> TgtInsert",
-				"alterRow1 sink(allowSchemaDrift: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> Tgtinsert",
+				"ColumnReducer2 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
 				"          surr as integer,",
@@ -165,21 +171,16 @@
 				"     insertable:false,",
 				"     updateable:true,",
 				"     upsertable:false,",
-				"     keys:['Id'],",
+				"     keys:['surr'],",
 				"     format: 'table',",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true,",
 				"     saveOrder: 1,",
 				"     errorHandlingOption: 'stopOnFirstError',",
 				"     mapColumn(",
-				"          surr = Ssurr,",
-				"          Id = SId,",
-				"          Name = SName,",
-				"          Gender = SGender,",
-				"          Country = SCountry,",
-				"          Department = SDepartment,",
-				"          Salary = SSalary,",
-				"          IsActive = SIsActive",
+				"          surr,",
+				"          Id,",
+				"          IsActive",
 				"     )) ~> TgtUpdate"
 			]
 		}
