@@ -64,9 +64,6 @@
 					"name": "UpdateIsActive"
 				},
 				{
-					"name": "UpdatePolicy"
-				},
-				{
 					"name": "ColumnReducer2"
 				}
 			],
@@ -121,8 +118,7 @@
 				"     negate:true,",
 				"     broadcast: 'auto')~> exists3",
 				"exists3 derive(IsActive = 0) ~> UpdateIsActive",
-				"UpdateIsActive alterRow(updateIf(true())) ~> UpdatePolicy",
-				"UpdatePolicy select(mapColumn(",
+				"UpdateIsActive select(mapColumn(",
 				"          surr,",
 				"          Id,",
 				"          Name,",
