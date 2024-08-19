@@ -65,6 +65,9 @@
 				},
 				{
 					"name": "ColumnReducer2"
+				},
+				{
+					"name": "Updatepolicy"
 				}
 			],
 			"scriptLines": [
@@ -118,7 +121,7 @@
 				"     negate:true,",
 				"     broadcast: 'auto')~> exists3",
 				"exists3 derive(IsActive = 0) ~> UpdateIsActive",
-				"UpdateIsActive select(mapColumn(",
+				"Updatepolicy select(mapColumn(",
 				"          surr,",
 				"          Id,",
 				"          Name,",
@@ -130,6 +133,7 @@
 				"     ),",
 				"     skipDuplicateMapInputs: true,",
 				"     skipDuplicateMapOutputs: true) ~> ColumnReducer2",
+				"UpdateIsActive alterRow(updateIf(1==1)) ~> Updatepolicy",
 				"ColumnReducer1 sink(allowSchemaDrift: true,",
 				"     validateSchema: false,",
 				"     input(",
