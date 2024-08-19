@@ -30,6 +30,8 @@
 		"folder": {
 			"name": "Incremental_Execution"
 		},
-		"annotations": []
-	}
+		"annotations": [],
+		"lastPublishTime": "2024-08-18T04:42:42Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
 }
