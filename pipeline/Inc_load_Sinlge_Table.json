@@ -1,0 +1,203 @@
+{
+	"name": "Inc_load_Sinlge_Table",
+	"properties": {
+		"activities": [
+			{
+				"name": "Sg_Lkp_WaterMark_Tbl",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "Single_Table_Water_Mark",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Sg_Lkp_Src_Table",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_OP_Single_Table_Emp",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Inc_Op_Op_Src_Dest_Wm",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Sg_Lkp_WaterMark_Tbl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Sg_Lkp_Src_Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "select * from emp \nwhere last_modified > '@{activity('Sg_Lkp_WaterMark_Tbl').output.firstRow.LAST_LOAD_DATE}'\nand last_modified <= '@{activity('Sg_Lkp_Src_Table').output.firstRow.LAST_MODIFIED}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "NAME",
+									"type": "String"
+								},
+								"sink": {
+									"name": "NAME",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "DEPT",
+									"type": "String"
+								},
+								"sink": {
+									"name": "DEPT",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "SALARY",
+									"type": "Int32"
+								},
+								"sink": {
+									"name": "SALARY",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "LAST_MODIFIED",
+									"type": "DateTime"
+								},
+								"sink": {
+									"name": "LAST_MODIFIED",
+									"type": "DateTime"
+								}
+							}
+						]
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_OP_Single_Table_Emp",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "UpdateWaterMarkTbl",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Inc_Op_Op_Src_Dest_Wm",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[UPDATE_WATERMARK_TABLE]",
+					"storedProcedureParameters": {
+						"LAST_LOAD_DATE": {
+							"value": {
+								"value": "@activity('Sg_Lkp_Src_Table').output.firstRow.LAST_LOAD_DATE",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"TABLENAME": {
+							"value": {
+								"value": "@activity('Sg_Lkp_WaterMark_Tbl').output.firstRow.TABLENAME",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sql_Server",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"folder": {
+			"name": "Incremental_Execution"
+		},
+		"annotations": []
+	}
+}
