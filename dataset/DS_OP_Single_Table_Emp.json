@@ -1,0 +1,41 @@
+{
+	"name": "DS_OP_Single_Table_Emp",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_Server",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [
+			{
+				"name": "ID",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "NAME",
+				"type": "varchar"
+			},
+			{
+				"name": "DEPT",
+				"type": "varchar"
+			},
+			{
+				"name": "SALARY",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "LAST_MODIFIED",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "EMP"
+		}
+	}
+}
