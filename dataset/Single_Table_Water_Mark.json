@@ -1,5 +1,5 @@
 {
-	"name": "Single_Table_Emp",
+	"name": "Single_Table_Water_Mark",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_sql_Server",
