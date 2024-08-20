@@ -1,5 +1,5 @@
 {
-	"name": "Inc_load_Sinlge_Table",
+	"name": "On_Prem_Inc_load_Sinlge_Table_Main",
 	"properties": {
 		"activities": [
 			{
@@ -42,6 +42,7 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
+						"sqlReaderQuery": "SELECT MAX(LAST_MODIFIED) AS LAST_MODIFIED \nFROM EMP",
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
