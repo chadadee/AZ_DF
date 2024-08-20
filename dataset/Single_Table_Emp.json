@@ -1,0 +1,16 @@
+{
+	"name": "Single_Table_Emp",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sql_Server",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "SqlServerTable",
+		"schema": [],
+		"typeProperties": {
+			"schema": "dbo",
+			"table": "EMP"
+		}
+	}
+}
