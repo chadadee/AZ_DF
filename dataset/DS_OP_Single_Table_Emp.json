@@ -35,7 +35,7 @@
 		],
 		"typeProperties": {
 			"schema": "dbo",
-			"table": "EMP"
+			"table": "WATER_MARK_TABLE"
 		}
 	}
 }
