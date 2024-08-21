@@ -2,7 +2,7 @@
 	"name": "Single_Table_Water_Mark",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "ls_sql_Server",
+			"referenceName": "Ls_Sql_Server_Masterdb",
 			"type": "LinkedServiceReference"
 		},
 		"annotations": [],
