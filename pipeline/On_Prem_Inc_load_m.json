@@ -89,7 +89,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "SELECT * FROM @{pipeline().parameters.SrcTableName}\nwhere  @{pipeline().parameters.WatermarkCol} <=\n'@{activity('Sg_Lkp_Src_Table').output.firstRow.LATESTDATE}'\nand @{pipeline().parameters.WatermarkCol}>'@{activity('Sg_Lkp_WaterMark_Tbl').output.firstRow.LATEST_DATE_LOAD}'",
+							"value": "SELECT * FROM \n@{pipeline().parameters.SrcTableName}\nWHERE @{pipeline().parameters.WatermarkCol} > '@{activity('Sg_Lkp_WaterMark_Tbl').output.firstRow.LATEST_DATE_LOAD}'\nAND @{pipeline().parameters.WatermarkCol} < = '@{activity('Sg_Lkp_Src_Table').output.firstRow.LATESTDATE}'",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
