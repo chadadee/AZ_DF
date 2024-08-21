@@ -5,6 +5,11 @@
 			"referenceName": "ls_sql_Server",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"TgtTableName": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "SqlServerTable",
 		"schema": [
@@ -32,6 +37,12 @@
 				"precision": 23,
 				"scale": 3
 			}
-		]
+		],
+		"typeProperties": {
+			"table": {
+				"value": "@dataset().TgtTableName",
+				"type": "Expression"
+			}
+		}
 	}
 }
