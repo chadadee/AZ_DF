@@ -2,8 +2,13 @@
 	"name": "Op_DB_ST",
 	"properties": {
 		"linkedServiceName": {
-			"referenceName": "ls_sql_Server",
+			"referenceName": "Ls_Sql_Server_Masterdb",
 			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			}
 		},
 		"folder": {
 			"name": "Incremental_DL_Ds"
@@ -12,8 +17,10 @@
 		"type": "SqlServerTable",
 		"schema": [],
 		"typeProperties": {
-			"schema": "dbo",
-			"table": "EMP_DEST"
+			"table": {
+				"value": "@dataset().TableName",
+				"type": "Expression"
+			}
 		}
 	}
 }
