@@ -5,8 +5,19 @@
 			"referenceName": "Ls_Sql_Server_Masterdb",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"TgtTable": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "SqlServerTable",
-		"schema": []
+		"schema": [],
+		"typeProperties": {
+			"table": {
+				"value": "@dataset().TgtTable",
+				"type": "Expression"
+			}
+		}
 	}
 }
