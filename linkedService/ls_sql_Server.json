@@ -7,7 +7,7 @@
 		"typeProperties": {
 			"connectionString": "integrated security=True;data source=DEEPAK\\SQLEXPRESS;initial catalog=AdventureWorksLT2022",
 			"userName": "deepa",
-			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiIwZTY1MjM4Ny03YzJiLTQyMTItYmIyZC0zZThhZTljOGIzMDIiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
+			"encryptedCredential": "eyJDcmVkZW50aWFsSWQiOiI3NzQyYWUyMC1mYWEwLTRlMzAtYTQxZS03YjdjNmM1ODk0MzMiLCJWZXJzaW9uIjoiMi4wIiwiQ2xhc3NUeXBlIjoiTWljcm9zb2Z0LkRhdGFQcm94eS5Db3JlLkludGVyU2VydmljZURhdGFDb250cmFjdC5DcmVkZW50aWFsU1UwNkNZMTQifQ=="
 		},
 		"connectVia": {
 			"referenceName": "SHIR",
