@@ -1,5 +1,5 @@
 {
-	"name": "Single_Table_Water_Mark",
+	"name": "DS_OP_TGT_DYNAMIC",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "Ls_Sql_Server_Masterdb",
