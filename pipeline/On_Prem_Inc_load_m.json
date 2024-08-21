@@ -168,7 +168,7 @@
 				],
 				"outputs": [
 					{
-						"referenceName": "Single_Table_Water_Mark",
+						"referenceName": "DS_OP_TGT_DYNAMIC",
 						"type": "DatasetReference",
 						"parameters": {
 							"TgtTable": {

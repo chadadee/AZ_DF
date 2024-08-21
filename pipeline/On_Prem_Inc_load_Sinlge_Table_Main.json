@@ -17,11 +17,15 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT * FROM \nWATER_MARK_TABLE\nWHERE TABLENAME = '@{pipeline().parameters.SrcTableName}'",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
 					"dataset": {
-						"referenceName": "Single_Table_Water_Mark",
+						"referenceName": "DS_OP_Single_Table_Dynamic",
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": true
@@ -42,12 +46,15 @@
 				"typeProperties": {
 					"source": {
 						"type": "SqlServerSource",
-						"sqlReaderQuery": "SELECT MAX(LAST_MODIFIED) AS LAST_MODIFIED \nFROM EMP",
+						"sqlReaderQuery": {
+							"value": "SELECT MAX(@{pipeline().parameters.WatermarkColumn}) AS LAST_MODIFIED\nFROM @{pipeline().parameters.SrcTableName}",
+							"type": "Expression"
+						},
 						"queryTimeout": "02:00:00",
 						"partitionOption": "None"
 					},
 					"dataset": {
-						"referenceName": "DS_OP_Single_Table_Emp",
+						"referenceName": "DS_OP_Single_Table_Dynamic",
 						"type": "DatasetReference"
 					},
 					"firstRowOnly": true
@@ -82,7 +89,7 @@
 					"source": {
 						"type": "SqlServerSource",
 						"sqlReaderQuery": {
-							"value": "select * from emp \nwhere last_modified > '@{activity('Sg_Lkp_WaterMark_Tbl').output.firstRow.LAST_LOAD_DATE}'\nand last_modified <= '@{activity('Sg_Lkp_Src_Table').output.firstRow.LAST_MODIFIED}'",
+							"value": "select * from @{pipeline().parameters.SrcTableName} \nwhere @{pipeline().parameters.WatermarkColumn} > '@{activity('Sg_Lkp_WaterMark_Tbl').output.firstRow.LATEST_DATE_LOAD}'\nand @{pipeline().parameters.WatermarkColumn} <= '@{activity('Sg_Lkp_Src_Table').output.firstRow.LAST_MODIFIED}'",
 							"type": "Expression"
 						},
 						"queryTimeout": "02:00:00",
@@ -94,7 +101,7 @@
 						"upsertSettings": {
 							"useTempDB": true,
 							"keys": [
-								"ID"
+								"EMPID"
 							]
 						},
 						"sqlWriterUseTableLock": false
@@ -105,26 +112,14 @@
 						"mappings": [
 							{
 								"source": {
-									"name": "ID",
+									"name": "EMPID",
 									"type": "Int32",
 									"physicalType": "int"
 								},
 								"sink": {
-									"name": "ID",
+									"name": "EMPID",
 									"type": "Int32",
 									"physicalType": "int"
-								}
-							},
-							{
-								"source": {
-									"name": "NAME",
-									"type": "String",
-									"physicalType": "varchar"
-								},
-								"sink": {
-									"name": "NAME",
-									"type": "String",
-									"physicalType": "varchar"
 								}
 							},
 							{
@@ -141,26 +136,14 @@
 							},
 							{
 								"source": {
-									"name": "SALARY",
-									"type": "Int32",
-									"physicalType": "int"
+									"name": "LOCATION",
+									"type": "String",
+									"physicalType": "varchar"
 								},
 								"sink": {
-									"name": "SALARY",
-									"type": "Int32",
-									"physicalType": "int"
-								}
-							},
-							{
-								"source": {
-									"name": "LAST_MODIFIED",
-									"type": "DateTime",
-									"physicalType": "datetime"
-								},
-								"sink": {
-									"name": "LAST_MODIFIED",
-									"type": "DateTime",
-									"physicalType": "datetime"
+									"name": "LOCATION",
+									"type": "String",
+									"physicalType": "varchar"
 								}
 							}
 						],
@@ -173,14 +156,20 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "DS_OP_Single_Table_Emp",
+						"referenceName": "DS_OP_Single_Table_Dynamic",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "Op_DB_ST",
-						"type": "DatasetReference"
+						"referenceName": "DS_OP_TGT_DYNAMIC",
+						"type": "DatasetReference",
+						"parameters": {
+							"TgtTable": {
+								"value": "@pipeline().parameters.TgtTableName",
+								"type": "Expression"
+							}
+						}
 					}
 				]
 			},
@@ -228,6 +217,17 @@
 				}
 			}
 		],
+		"parameters": {
+			"SrcTableName": {
+				"type": "string"
+			},
+			"TgtTableName": {
+				"type": "string"
+			},
+			"WatermarkColumn": {
+				"type": "string"
+			}
+		},
 		"folder": {
 			"name": "Incremental_Execution"
 		},
