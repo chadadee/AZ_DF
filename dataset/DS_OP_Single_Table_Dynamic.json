@@ -7,31 +7,6 @@
 		},
 		"annotations": [],
 		"type": "SqlServerTable",
-		"schema": [
-			{
-				"name": "ID",
-				"type": "int",
-				"precision": 10
-			},
-			{
-				"name": "NAME",
-				"type": "varchar"
-			},
-			{
-				"name": "DEPT",
-				"type": "varchar"
-			},
-			{
-				"name": "SALARY",
-				"type": "int",
-				"precision": 10
-			},
-			{
-				"name": "LAST_MODIFIED",
-				"type": "datetime",
-				"precision": 23,
-				"scale": 3
-			}
-		]
+		"schema": []
 	}
 }
