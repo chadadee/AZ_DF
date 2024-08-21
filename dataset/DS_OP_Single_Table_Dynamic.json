@@ -1,5 +1,5 @@
 {
-	"name": "DS_OP_Single_Table_Emp",
+	"name": "DS_OP_Single_Table_Dynamic",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_sql_Server",
@@ -32,10 +32,6 @@
 				"precision": 23,
 				"scale": 3
 			}
-		],
-		"typeProperties": {
-			"schema": "dbo",
-			"table": "EMP"
-		}
+		]
 	}
 }
