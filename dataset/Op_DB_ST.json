@@ -5,11 +5,6 @@
 			"referenceName": "Ls_Sql_Server_Masterdb",
 			"type": "LinkedServiceReference"
 		},
-		"parameters": {
-			"TableName": {
-				"type": "string"
-			}
-		},
 		"folder": {
 			"name": "Incremental_DL_Ds"
 		},
