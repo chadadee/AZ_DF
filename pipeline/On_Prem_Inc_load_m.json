@@ -1,0 +1,242 @@
+{
+	"name": "On_Prem_Inc_load_m",
+	"properties": {
+		"activities": [
+			{
+				"name": "Sg_Lkp_WaterMark_Tbl",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT TABLENAME,LATEST_DATE_LOAD FROM \nWATER_MARK_TABLE\nWHERE TABLENAME = '@{pipeline().parameters.SrcTableName}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_OP_Single_Table_Dynamic",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Sg_Lkp_Src_Table",
+				"type": "Lookup",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT max(@{pipeline().parameters.WatermarkCol})\nAS LATESTDATE\nFROM @{pipeline().parameters.SrcTableName}",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"dataset": {
+						"referenceName": "DS_OP_Single_Table_Dynamic",
+						"type": "DatasetReference"
+					},
+					"firstRowOnly": true
+				}
+			},
+			{
+				"name": "Inc_Op_Op_Src_Dest_Wm",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Sg_Lkp_WaterMark_Tbl",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					},
+					{
+						"activity": "Sg_Lkp_Src_Table",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "SqlServerSource",
+						"sqlReaderQuery": {
+							"value": "SELECT * FROM @{pipeline().parameters.SrcTableName}\nwhere  @{pipeline().parameters.WatermarkCol} <=\n'@{activity('Sg_Lkp_Src_Table').output.firstRow.LATESTDATE}'\nand @{pipeline().parameters.WatermarkCol}>'@{activity('Sg_Lkp_WaterMark_Tbl').output.firstRow.LATEST_DATE_LOAD}'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "SqlServerSink",
+						"writeBehavior": "insert",
+						"sqlWriterUseTableLock": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "ID",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "ID",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							},
+							{
+								"source": {
+									"name": "NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "NAME",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "DEPT",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "DEPT",
+									"type": "String",
+									"physicalType": "varchar"
+								}
+							},
+							{
+								"source": {
+									"name": "SALARY",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "SALARY",
+									"type": "Int32",
+									"physicalType": "int"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_OP_Single_Table_Dynamic",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Single_Table_Water_Mark",
+						"type": "DatasetReference",
+						"parameters": {
+							"TgtTable": {
+								"value": "@pipeline().parameters.TgtTableName",
+								"type": "Expression"
+							}
+						}
+					}
+				]
+			},
+			{
+				"name": "UpdateWaterMarkTbl",
+				"type": "SqlServerStoredProcedure",
+				"dependsOn": [
+					{
+						"activity": "Inc_Op_Op_Src_Dest_Wm",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"storedProcedureName": "[dbo].[UPDATE_WATERMARK_TABLE]",
+					"storedProcedureParameters": {
+						"LAST_LOAD_DATE": {
+							"value": {
+								"value": "@activity('Sg_Lkp_Src_Table').output.firstRow.LATESTDATE",
+								"type": "Expression"
+							},
+							"type": "DateTime"
+						},
+						"TABLENAME": {
+							"value": {
+								"value": "@activity('Sg_Lkp_WaterMark_Tbl').output.firstRow.TABLENAME",
+								"type": "Expression"
+							},
+							"type": "String"
+						}
+					}
+				},
+				"linkedServiceName": {
+					"referenceName": "ls_sql_Server",
+					"type": "LinkedServiceReference"
+				}
+			}
+		],
+		"parameters": {
+			"SrcTableName": {
+				"type": "string"
+			},
+			"WatermarkCol": {
+				"type": "string"
+			},
+			"TgtTableName": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "Incremental_Execution"
+		},
+		"annotations": []
+	}
+}
