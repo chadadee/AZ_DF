@@ -16,7 +16,7 @@
 			"location": {
 				"type": "AzureBlobStorageLocation",
 				"fileName": {
-					"value": "@concat(dataset().File_Name,'.csv')",
+					"value": "@dataset().File_Name",
 					"type": "Expression"
 				},
 				"folderPath": "Input",
