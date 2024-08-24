@@ -1,0 +1,28 @@
+{
+	"name": "Ds_sepecific_File_json_output",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_blob",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TgtFilename": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Json",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": {
+					"value": "@concat(dataset().TgtFilename,'_Out','.json')",
+					"type": "Expression"
+				},
+				"folderPath": "Output",
+				"container": "bronze"
+			}
+		},
+		"schema": {}
+	}
+}
