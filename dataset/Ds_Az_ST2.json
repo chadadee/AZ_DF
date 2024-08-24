@@ -1,10 +1,6 @@
 {
 	"name": "Ds_Az_ST2",
 	"properties": {
-		"linkedServiceName": {
-			"referenceName": "ls_Azure_Sql_DB",
-			"type": "LinkedServiceReference"
-		},
 		"folder": {
 			"name": "Incremental_DL_Ds"
 		},
