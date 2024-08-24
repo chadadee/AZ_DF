@@ -16,7 +16,7 @@
 			"location": {
 				"type": "AzureBlobStorageLocation",
 				"fileName": {
-					"value": "@concat(dataset().TgtFilename,'_Out')",
+					"value": "@dataset().TgtFilename",
 					"type": "Expression"
 				},
 				"folderPath": "Output",
