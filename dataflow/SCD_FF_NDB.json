@@ -1,0 +1,175 @@
+{
+	"name": "SCD_FF_NDB",
+	"properties": {
+		"folder": {
+			"name": "Incremental_DF"
+		},
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST",
+						"type": "DatasetReference"
+					},
+					"name": "AzsqlEmpTbl"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "AZsqlTgtTbl"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "DestEmp"
+				},
+				{
+					"dataset": {
+						"referenceName": "Ds_Az_ST2",
+						"type": "DatasetReference"
+					},
+					"name": "TgtEmpDest"
+				}
+			],
+			"transformations": [
+				{
+					"name": "SRCHash"
+				},
+				{
+					"name": "TgtHash"
+				},
+				{
+					"name": "Insert"
+				},
+				{
+					"name": "UpdateCheck"
+				},
+				{
+					"name": "AddIsActive"
+				},
+				{
+					"name": "select1"
+				},
+				{
+					"name": "HashCheckforUpdate"
+				},
+				{
+					"name": "IsActiveFalseUpdate"
+				},
+				{
+					"name": "select2"
+				},
+				{
+					"name": "UpdateRow"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          id as integer,",
+				"          name as string,",
+				"          salary as integer,",
+				"          location as string,",
+				"          is_active as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table') ~> AzsqlEmpTbl",
+				"source(output(",
+				"          id as integer,",
+				"          name as string,",
+				"          salary as integer,",
+				"          location as string,",
+				"          is_active as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     format: 'table',",
+				"     partitionBy('hash', 1)) ~> AZsqlTgtTbl",
+				"AzsqlEmpTbl derive(SrcHash = sha2(256, columns()),",
+				"     partitionBy('hash', 1)) ~> SRCHash",
+				"AZsqlTgtTbl derive(TgtHash = sha2(256, columns())) ~> TgtHash",
+				"SRCHash, TgtHash exists(SrcHash == TgtHash,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> Insert",
+				"TgtHash, SRCHash exists(AZsqlTgtTbl@id == AzsqlEmpTbl@id,",
+				"     negate:false,",
+				"     broadcast: 'auto')~> UpdateCheck",
+				"Insert derive(is_active = 1) ~> AddIsActive",
+				"AddIsActive select(mapColumn(",
+				"          id,",
+				"          name,",
+				"          salary,",
+				"          location,",
+				"          is_active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select1",
+				"UpdateCheck, SRCHash exists(TgtHash == SrcHash,",
+				"     negate:true,",
+				"     broadcast: 'auto')~> HashCheckforUpdate",
+				"HashCheckforUpdate derive(is_active = 0) ~> IsActiveFalseUpdate",
+				"IsActiveFalseUpdate select(mapColumn(",
+				"          id,",
+				"          name,",
+				"          salary,",
+				"          location,",
+				"          is_active",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> select2",
+				"select2 alterRow(updateIf(1==1)) ~> UpdateRow",
+				"select1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id as integer,",
+				"          name as string,",
+				"          salary as integer,",
+				"          location as string,",
+				"          is_active as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError',",
+				"     mapColumn(",
+				"          id,",
+				"          name,",
+				"          salary,",
+				"          location,",
+				"          is_active",
+				"     )) ~> DestEmp",
+				"UpdateRow sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     input(",
+				"          id as integer,",
+				"          name as string,",
+				"          salary as integer,",
+				"          location as string,",
+				"          is_active as string",
+				"     ),",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     keys:['id'],",
+				"     format: 'table',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     errorHandlingOption: 'stopOnFirstError') ~> TgtEmpDest"
+			]
+		}
+	}
+}
