@@ -12,39 +12,26 @@
 		"type": "AzureSqlTable",
 		"schema": [
 			{
-				"name": "surr",
+				"name": "id",
 				"type": "int",
 				"precision": 10
 			},
 			{
-				"name": "Id",
+				"name": "name",
+				"type": "varchar"
+			},
+			{
+				"name": "salary",
 				"type": "int",
 				"precision": 10
 			},
 			{
-				"name": "Name",
+				"name": "location",
 				"type": "varchar"
 			},
 			{
-				"name": "Gender",
+				"name": "is_active",
 				"type": "varchar"
-			},
-			{
-				"name": "Country",
-				"type": "varchar"
-			},
-			{
-				"name": "Department",
-				"type": "varchar"
-			},
-			{
-				"name": "Salary",
-				"type": "varchar"
-			},
-			{
-				"name": "IsActive",
-				"type": "int",
-				"precision": 10
 			}
 		],
 		"typeProperties": {
