@@ -1,6 +1,10 @@
 {
 	"name": "Ds_Az_ST2",
 	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_AZ_SQL",
+			"type": "LinkedServiceReference"
+		},
 		"folder": {
 			"name": "Incremental_DL_Ds"
 		},
@@ -45,7 +49,7 @@
 		],
 		"typeProperties": {
 			"schema": "dbo",
-			"table": "employees_snow_hist"
+			"table": "emp_dest"
 		}
 	}
 }
